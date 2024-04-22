@@ -6,24 +6,43 @@
 </svelte:head>
 
 <script>
-    let toDoList = [{content: "Fazer o trabalho do Guto!", editing: false, checked:true}];
+    import { onMount } from 'svelte';
+
+    let toDoList = [];
     let textInput = "";
+    let nextPokemonId = 1;
+
+    onMount(() => {
+        if (toDoList.length === 0) {
+            toDoList.push({content: "Fazer o trabalho do Guto!", editing: false, checked: true, pokemonGif: null});
+            fetchPokemonGif(nextPokemonId++, toDoList.length - 1);
+        }
+    });
 
     function addToDo() {
-        toDoList = [...toDoList, {content:textInput , editing: false, checked:false}]
+        if (textInput.trim() !== "") {
+            toDoList = [{content: textInput, editing: false, checked: false, pokemonGif: null}, ...toDoList];
+            fetchPokemonGif(nextPokemonId++, 0);
+            textInput = "";
+        }
+    }
+
+    function fetchPokemonGif(pokemonId, index) {
+        let gifUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/${pokemonId}.gif`;
+        toDoList[index].pokemonGif = gifUrl;
+        toDoList = toDoList;
     }
 
     function setEditing(i, isEditing) {
-        toDoList[i].editing= isEditing; //true or false
+        toDoList[i].editing = isEditing;
     }
 
     function deleteTodo(i) {
         toDoList.splice(i, 1);
-        toDoList = toDoList; //https://svelte.dev/tutorial/updating-arrays-and-objects
-        // Estranho mas tem que 'dizer pro Svelte' que estamos dando update
-        //no valor da lista de toDo
+        toDoList = toDoList;
     }
 </script>
+
 
 <div style="margin: 0 auto; padding: 20px; width: 700px">
   <h2 style="text-align: center;">Todo List</h2>
@@ -34,13 +53,14 @@
   </div>
 </div>
 
-{#each toDoList as toDo, i }
-<div style="display: flex; align-items: baseline; width: 700px; margin:0 auto;">
+{#each toDoList as toDo, i}
+<div style="display: flex; align-items: center; width: 700px; margin: 0 auto;">
     {#if toDo.editing}
         <input type="text" bind:value={toDo.content}>
     {:else}
-    <input type="checkbox" bind:checked={toDo.checked}>
-    <h4 style="flex-grow: 1">{toDo.content}</h4>
+        <input type="checkbox" bind:checked={toDo.checked}>
+        <img src={toDo.pokemonGif} alt={`GIF animado do Pokémon número ${i+1}`} style="width: 50px; height: 50px; margin-right: 10px;">
+        <h4 style="flex-grow: 1">{toDo.content}</h4>
     {/if}
     <div style="display: flex;">
         {#if toDo.editing}
